@@ -12,6 +12,13 @@
   "author": {
     "name": "Andres Urrutia",
     "url": "https://github.com/PizzaPopcorn"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Sample Scene",
+      "description": "Sample scene with basic components",
+      "path": "Samples~/Unity JS Sample"
+    }
+  ]
 }
 
