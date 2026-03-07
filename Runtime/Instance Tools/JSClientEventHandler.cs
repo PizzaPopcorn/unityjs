@@ -92,24 +92,29 @@ namespace UniJS.InstanceTools
         }
     }
 
-    public class JSIdentifiableCallback
+    internal class JSIdentifiableCallback
     {
         public Guid Id { get; } = Guid.NewGuid();
         private readonly Func<string, string> _callback;
-        private readonly WeakReference _targetRef;
         
         public JSIdentifiableCallback(Func<string, string> callback)
         {
             _callback = callback;
-            _targetRef = new WeakReference(_callback.Target);
         }
         
         public bool TryInvoke(string payload, out string result)
         {
             result = null;
-            if (!_targetRef.IsAlive) return false;
-            if (_callback == null) return false;
-            result = _callback.Invoke(payload);
+            if(_callback?.Target == null) return false;
+            try
+            {
+                result = _callback.Invoke(payload);
+            }
+            catch (Exception e)
+            {
+                JSInstance.LogError(e.Message);
+                return false;
+            }
             return true;
         }
     }

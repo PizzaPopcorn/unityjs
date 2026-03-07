@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace UniJS
@@ -21,6 +23,8 @@ namespace UniJS
         [DllImport("__Internal")]
         private static extern void Lib_LogToJS(string verbosity, string message);
         
+        private static Dictionary<string, GameObject> _keyGameObjects = new();
+        
         void Awake()
         {
             if (instance != null && instance != this)
@@ -34,11 +38,12 @@ namespace UniJS
             JSClientEventHandler.StartListeningToClientEvents();
             JSEventHub.Initialize();
             RegisterInstanceEvents();
-            Lib_InstanceReady();
+            StartCoroutine(WaitForRestOfSceneAwake());
         }
 
         public static void RegisterKeyGameObject(string key, GameObject go)
         {
+            _keyGameObjects[key] = go;
             var data = new JSGameObjectData(go);
             Lib_RegisterKeyGameObject(key, JsonUtility.ToJson(data));
         }
@@ -55,6 +60,32 @@ namespace UniJS
         public static Guid OnEvent<TPayload, TResult>(string eventName, Func<TPayload, TResult> callback)
         {
             return JSClientEventHandler.OnClientEventReceived(eventName, callback);
+        }
+        
+        public static Guid OnEventAsync<TPayload>(string eventName, Func<TPayload, Task> callback)
+        {
+            return OnEventAsync<TPayload, string>(eventName, async payload =>
+            {
+                await callback.Invoke(payload);
+                return "<ok>";
+            });
+        }
+        
+        public static Guid OnEventAsync<TPayload, TResult>(string eventName, Func<TPayload, Task<TResult>> callback)
+        {
+            return JSClientEventHandler.OnClientEventReceived<TPayload, PromisePayload>(eventName, payload =>
+            {
+                var promise = new PromisePayload();
+                AsyncCallback(payload, promise.promiseId);
+                return promise;
+            });
+
+            async Task AsyncCallback(TPayload payload, string promiseId)
+            {
+                await Task.Yield();
+                var result = await callback(payload);
+                InvokeEvent($"PromiseResolvedEvent:{promiseId}", result);
+            }
         }
         
         public static void OffEvent(string eventName, Guid callbackId)
@@ -109,6 +140,7 @@ namespace UniJS
                 instance.StartCoroutine(SendEndOfFrameMessage(eventId));
             });
 
+            OnEvent<string, string>("InstanceEvent:GetUnityVersion", _ => Application.unityVersion);
             OnEvent<string, string>("InstanceEvent:GetBuildVersion", _ => Application.version);
 
             OnEvent<string>("InstanceEvent:LoadScene", sceneName =>
@@ -124,6 +156,30 @@ namespace UniJS
 
             OnEvent<string, bool>("InstanceEvent:IsSceneLoading", _ => JSSceneManager.IsSceneLoading());
             OnEvent<string, float>("InstanceEvent:GetSceneLoadProgress", _ => JSSceneManager.GetSceneLoadProgress());
+            
+            OnEventAsync<string>("InstanceEvent:LoadBundle", async bundleUrl =>
+            {
+                await JSAssetBundleLoader.LoadBundle(bundleUrl);
+            });
+
+            OnEventAsync<InstantiatePrefabFromBundlePayload>("InstanceEvent:InstantiatePrefabFromBundle", async payload =>
+            {
+                if (!string.IsNullOrEmpty(payload.parentKey))
+                {
+                    if (_keyGameObjects.TryGetValue(payload.parentKey, out var parent))
+                    {
+                        await JSAssetBundleLoader.InstantiatePrefabFromBundle(payload.bundleUrl, payload.prefabName, parent.transform);
+                        return;
+                    }
+                }
+                await JSAssetBundleLoader.InstantiatePrefabFromBundle(payload.bundleUrl, payload.prefabName);
+            });
+        }
+        
+        private static IEnumerator WaitForRestOfSceneAwake()
+        {
+            yield return new WaitForEndOfFrame();
+            Lib_InstanceReady();
         }
 
         private static IEnumerator SendEndOfFrameMessage(string eventId)
