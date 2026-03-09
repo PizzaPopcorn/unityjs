@@ -7,7 +7,7 @@ namespace UniJS.InstanceTools
     public class JSAssetBundleLoader
     {
         /// <summary>
-        /// This function loads the bundle, instantiates a prefab in it, and then unloads the bundle after instantiating the prefab, so you don't have to handle it manually.
+        /// This function loads the bundle, instantiates a prefab from it, and then unloads the bundle so you don't have to handle it manually.
         /// </summary>
         /// <param name="bundleUrl">The path of the bundle</param>
         /// <param name="prefabName">The name of the prefab to instantiate</param>
