@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 namespace UniJS.InstanceTools
 {
-    internal class JSSceneManager
+    internal static class JSSceneManager
     {
         private static AsyncOperation _sceneLoadOperation;
         

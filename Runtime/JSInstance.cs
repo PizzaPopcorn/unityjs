@@ -143,6 +143,7 @@ namespace UniJS
             OnEvent<string, string>("InstanceEvent:GetUnityVersion", _ => Application.unityVersion);
             OnEvent<string, string>("InstanceEvent:GetBuildVersion", _ => Application.version);
 
+            // Scene Events
             OnEvent<string>("InstanceEvent:LoadScene", sceneName =>
             {
                 LogInternal($"Loading scene {sceneName}");
@@ -157,6 +158,7 @@ namespace UniJS
             OnEvent<string, bool>("InstanceEvent:IsSceneLoading", _ => JSSceneManager.IsSceneLoading());
             OnEvent<string, float>("InstanceEvent:GetSceneLoadProgress", _ => JSSceneManager.GetSceneLoadProgress());
             
+            // Asset Bundle Events
             OnEventAsync<string>("InstanceEvent:LoadBundle", async bundleUrl =>
             {
                 await JSAssetBundleLoader.LoadBundle(bundleUrl);
@@ -174,6 +176,11 @@ namespace UniJS
                 }
                 await JSAssetBundleLoader.InstantiatePrefabFromBundle(payload.bundleUrl, payload.prefabName);
             });
+            
+            // Physics Events
+            OnEvent<RaycastPayload, RaycastHitPayload>("InstanceEvent:Raycast", JSPhysicsStaticEngine.Raycast);
+            OnEvent<OverlapSpherePayload, OverlapResultsPayload>("InstanceEvent:OverlapSphere", JSPhysicsStaticEngine.OverlapSphere);
+            OnEvent<OverlapBoxPayload, OverlapResultsPayload>("InstanceEvent:OverlapBox", JSPhysicsStaticEngine.OverlapBox);
         }
         
         private static IEnumerator WaitForRestOfSceneAwake()

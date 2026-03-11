@@ -62,4 +62,13 @@ namespace UniJS.Events
             return child == null ? null : new JSGameObjectData(child.gameObject);
         }
     }
+    
+    [JSExposedClass("gameObject.destroy")]
+    public class Event_GameObjectDestroy : JSEventVoid<GameObject, string> 
+    {
+        protected override void Invoke(GameObject target, string _)
+        {
+            GameObject.Destroy(target);
+        }
+    }
 }

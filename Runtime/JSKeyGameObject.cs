@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UniJS.InstanceTools;
 using UniJS.Payloads;
@@ -46,7 +47,31 @@ namespace UniJS
         private void OnDestroy()
         {
             JSGameObjectEventHandler.SendGameObjectLifeCycleEvent(JSKey, "destroy");
-            
+        }
+
+        private void Update()
+        {
+            JSGameObjectEventHandler.SendGameObjectLifeCycleEvent(JSKey, "update");
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            JSInstance.InvokeEvent($"CollisionEnter:{JSKey}", new JSGameObjectData(collision.gameObject));
+        }
+
+        private void OnCollisionExit(Collision collision)
+        {
+            JSInstance.InvokeEvent($"CollisionExit:{JSKey}", new JSGameObjectData(collision.gameObject));
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            JSInstance.InvokeEvent($"TriggerEnter:{JSKey}", new JSGameObjectData(other.gameObject));
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            JSInstance.InvokeEvent($"TriggerExit:{JSKey}", new JSGameObjectData(other.gameObject));
         }
 
         private ResponsePayload JSOnEventCallback(string payload)
