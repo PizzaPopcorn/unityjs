@@ -42,7 +42,7 @@ namespace UniJS.Events
         {
             if (target.TryGetComponent<Rigidbody>(out var rb))
             {
-                rb.velocity = new Vector3(velocity.x, velocity.y, velocity.z);
+                rb.linearVelocity = new Vector3(velocity.x, velocity.y, velocity.z);
             }
             else
             {
@@ -58,7 +58,7 @@ namespace UniJS.Events
         {
             if (target.TryGetComponent<Rigidbody>(out var rb))
             {
-                var v = rb.velocity;
+                var v = rb.linearVelocity;
                 return new Vector3Payload { x = v.x, y = v.y, z = v.z };
             }
             
