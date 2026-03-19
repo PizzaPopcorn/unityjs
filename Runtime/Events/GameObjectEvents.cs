@@ -101,4 +101,16 @@ namespace UniJS.Events
         }
     }
     
+    [ExposeJSEvent("gameObject.instantiate")]
+    public class Event_GameObjectInstantiate : JSEvent<GameObject, InstantiatePayload, JSGameObjectData>
+    {
+        protected override JSGameObjectData Invoke(GameObject target, InstantiatePayload payload)
+        {
+            var position = new Vector3(payload.position.x, payload.position.y, payload.position.z);
+            var rotation = new Quaternion(payload.rotation.x, payload.rotation.y, payload.rotation.z, payload.rotation.w);
+            var instantiatedObject = GameObject.Instantiate(Resources.Load<GameObject>(payload.prefabPath), position, rotation, target.transform);
+            return new JSGameObjectData(instantiatedObject);
+        }
+    }
+    
 }

@@ -142,6 +142,8 @@ namespace UniJS
 
             OnEvent<string, string>("InstanceEvent:GetUnityVersion", _ => Application.unityVersion);
             OnEvent<string, string>("InstanceEvent:GetBuildVersion", _ => Application.version);
+            
+            OnEvent<InstantiatePayload, JSGameObjectData>("InstanceEvent:InstantiateGameObject", JSGameObjectEventHandler.InstantiateGameObjectInRoot);
 
             // Scene Events
             OnEvent<string>("InstanceEvent:LoadScene", sceneName =>
